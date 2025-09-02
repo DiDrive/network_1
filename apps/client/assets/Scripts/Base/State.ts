@@ -18,7 +18,7 @@ export default class State {
     private fsm: StateMachine,
     private path: string,
     private wrapMode: AnimationClip.WrapMode = AnimationClip.WrapMode.Normal,
-    private force: boolean = false
+    private force: boolean = false  //是否强制播放
   ) {
     //生成动画轨道属性
     const track = new animation.ObjectTrack();

@@ -6,3 +6,8 @@ const getNumberWithinString = (str: string) => parseInt(str.match(INDEX_REG)?.[1
 
 export const sortSpriteFrame = (spriteFrame: Array<SpriteFrame>) =>
   spriteFrame.sort((a, b) => getNumberWithinString(a.name) - getNumberWithinString(b.name));
+
+
+export const getAngle = (rad:number) => {   //弧度转角度
+    return rad * 180 / Math.PI
+}
