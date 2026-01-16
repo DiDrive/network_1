@@ -20,3 +20,16 @@ export enum EntityStateEnum {
     Attack = 'Attack',
 }
 
+export enum ApiMsgEnum {
+    ApiPlayerJoin = 'ApiPlayerJoin',
+    ApiPlayerList = 'ApiPlayerList',
+    ApiRoomList = 'ApiRoomList',
+    ApiRoomJoin = 'ApiRoomJoin',
+    MsgPlayerList = 'MsgPlayerList',
+    MsgRoomList = 'MsgRoomList',
+    MsgRoom = 'MsgRoom',
+    MsgClientSync = 'MsgClientSync',
+    MsgServerSync = 'MsgServerSync',
+    ApiRoomCreate = 'ApiRoomCreate',
+}
+

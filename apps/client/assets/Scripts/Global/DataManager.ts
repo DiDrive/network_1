@@ -1,6 +1,6 @@
 import { Prefab, SpriteFrame, Node, find, UITransform } from "cc";
 import Singleton from "../Base/Singleton";
-import { EntityTypeEnum, IActorMove, IBullet, IClientInput, InputTypeEnum, IState } from "../Common";
+import { EntityTypeEnum, IActorMove, IBullet, IClientInput, InputTypeEnum, IRoom, IState } from "../Common";
 import { ActorManager } from "../Entity/Actor/ActorManager";
 import { JoyStickMananger } from "../UI/JoyStickMananger";
 import { BulletManager } from "../Entity/Bullet/BulletManager";
@@ -18,7 +18,10 @@ export default class DataManager extends Singleton {
   static get Instance() {
     return super.GetInstance<DataManager>();
   }
+  frameId = 1 //当前帧id
   myPlayerId:number = 1
+
+  roomInfo:IRoom
   stage:Node
   jm:JoyStickMananger
   actorMap:Map<number,ActorManager> = new Map()

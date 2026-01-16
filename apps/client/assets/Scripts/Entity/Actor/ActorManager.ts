@@ -5,6 +5,8 @@ import { EntityManager } from '../../Base/EntityManager';
 import { ActorStateMachine } from './ActorStateMachine';
 import { WeaponManager } from '../Weapon/WeaponManager';
 import { getAngle } from '../../Utils';
+import EventManager from '../../Global/EventManager';
+import { EventEnum } from '../../Enum';
 const { ccclass, property } = _decorator;
 
 @ccclass('ActorManager')
@@ -35,9 +37,7 @@ export class ActorManager extends EntityManager {
         } 
         if(DataManager.Instance.jm.input.length()){
             const {x,y} = DataManager.Instance.jm.input
-
-            DataManager.Instance.applyInput(
-                {
+            EventManager.Instance.emit(EventEnum.ClientSync,{
                     id:1,
                     type:InputTypeEnum.ActorMove,
                     direction:{
@@ -45,8 +45,7 @@ export class ActorManager extends EntityManager {
                         y,
                     },
                     dt,
-                }
-            )
+                })
             //console.log(DataManager.Instance.state.actors[0])
             this.state = EntityStateEnum.Run
         }else{

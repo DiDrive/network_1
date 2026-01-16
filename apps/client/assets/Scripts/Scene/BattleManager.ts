@@ -3,10 +3,12 @@ import DataManager from '../Global/DataManager';
 import { JoyStickMananger } from '../UI/JoyStickMananger';
 import { ResourceManager } from '../Global/ResourceManager';
 import { ActorManager } from '../Entity/Actor/ActorManager';
-import { PrefabPathEnum, TexturePathEnum } from '../Enum';
-import { EntityTypeEnum, InputTypeEnum } from '../Common';
+import { EventEnum, PrefabPathEnum, TexturePathEnum } from '../Enum';
+import { ApiMsgEnum, EntityTypeEnum, IClientInput, IMsgClientSync, IMsgServerSync, InputTypeEnum } from '../Common';
 import { BulletManager } from '../Entity/Bullet/BulletManager';
 import { ObjectPoolManager } from '../Global/ObjectPoolManager';
+import { NetWorkManager } from '../Global/NetWorkManager';
+import EventManager from '../Global/EventManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
@@ -17,16 +19,38 @@ export class BattleManager extends Component {
     private shouldUpdate:boolean = false
 
     protected onLoad(): void {
-        DataManager.Instance.stage = this.stage = this.node.getChildByName('Stage')
-        this.ui = this.node.getChildByName('UI')
-        this.stage.destroyAllChildren()
-        DataManager.Instance.jm = this.ui.getComponentInChildren(JoyStickMananger)
+       
+        
     }
 
     async start(){
-        await this.loadRes()    
+        this.clearGame()
+        await Promise.all([
+            this.loadRes(),
+            this.connectServer(),
+        ])
+        // NetWorkManager.Instance.sendMsg('nihao')
+        // NetWorkManager.Instance.ListenMsg('hello',(data)=>{
+        //     console.log('ListenMsg',data)
+        // },this)
+        //await this.loadRes()  
+        this.initGame()
+    }
+
+    initGame(){ //初始化游戏
+        DataManager.Instance.jm = this.ui.getComponentInChildren(JoyStickMananger)
         this.initMap()
-        this.shouldUpdate = true    
+        this.shouldUpdate = true  
+        EventManager.Instance.on(EventEnum.ClientSync,this.handleClientSync,this)
+        NetWorkManager.Instance.ListenMsg(ApiMsgEnum.MsgServerSync,this.handleServerSync,this)
+    }
+
+    clearGame(){    //清除游戏
+        EventManager.Instance.off(EventEnum.ClientSync,this.handleClientSync,this)
+        NetWorkManager.Instance.unListenMsg(ApiMsgEnum.MsgServerSync,this.handleServerSync,this)
+        DataManager.Instance.stage = this.stage = this.node.getChildByName('Stage')
+        this.ui = this.node.getChildByName('UI')
+        this.stage.destroyAllChildren()
     }
 
     //加载资源
@@ -128,6 +152,29 @@ export class BattleManager extends Component {
             }
         }
     }
+    async connectServer(){
+        if(!await NetWorkManager.Instance.connect().catch(()=>false)){
+            await  new Promise((resolve)=>{
+                setTimeout(()=>{
+                    resolve(true)
+                },1000)
+            })
+            this.connectServer()
+        }
+    }
 
+    handleClientSync(input:IClientInput){   //客户端同步输入
+        const Msg ={
+            input,
+            frameId:DataManager.Instance.frameId++,
+        }
+        NetWorkManager.Instance.sendMsg(ApiMsgEnum.MsgClientSync,Msg)
+    }
+
+    handleServerSync({ inputs,lastframeId }:IMsgServerSync){       //服务器同步输入
+        for (const input of inputs) {
+            DataManager.Instance.applyInput(input)
+        }
+    }
 }
 
