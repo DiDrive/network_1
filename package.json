@@ -8,5 +8,8 @@
   ],
   "scripts": {
     "dev": "yarn workspace @game/server run dev"
+  },
+  "dependencies": {
+    "big.js": "^7.0.1"
   }
 }

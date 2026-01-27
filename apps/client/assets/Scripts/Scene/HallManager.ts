@@ -78,7 +78,7 @@ export class HallManager extends Component {
                 return
             }
         DataManager.Instance.roomInfo = res.room
-        console.log("创建房间DataManager.Instance.roomInfo:",DataManager.Instance.roomInfo)
+        //console.log("创建房间DataManager.Instance.roomInfo:",DataManager.Instance.roomInfo)
         director.loadScene(SceneEnum.Room)
     }
 

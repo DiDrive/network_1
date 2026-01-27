@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@types/fs-extra": "^9.0.13",
+    "big.js": "^7.0.1",
     "fs-extra": "^10.1.0",
     "ws": "^8.10.0"
   }

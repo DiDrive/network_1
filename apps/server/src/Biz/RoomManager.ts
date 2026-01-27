@@ -29,13 +29,30 @@ export class RoomManager extends Singleton {
       return room
     }
   }
-//   removePlayer(playerid:number){
-//     const player = this.idMapPlayer.get(playerid)
-//     if(player){
-//       this.players.delete(player)
-//       this.idMapPlayer.delete(player.id)
-//     }
-//   }
+
+  leaveRoom(rid:number,uid:number){//离开房间
+    const room = this.idMapRoom.get(rid)
+    if(room){
+      room.leave(uid)
+    }
+  }
+
+  closeRoom(rid:number){//关闭房间
+    const room = this.idMapRoom.get(rid)
+    if(room){
+      room.close()
+      this.rooms.delete(room)
+      this.idMapRoom.delete(room.id)
+    }
+  }
+  
+  startRoom(rid:number){//开始游戏
+    const room = this.idMapRoom.get(rid)
+    if(room){
+      room.start()
+      this.syncRooms() // 房间开始游戏后，同步房间列表
+    }
+  }
 
   syncRooms(){//同步房间列表
     for (const player of PlayerManager.Instance.players) {

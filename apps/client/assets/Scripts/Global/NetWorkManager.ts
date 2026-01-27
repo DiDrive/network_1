@@ -1,6 +1,6 @@
 import { _decorator, resources, Asset, error } from "cc";
 import Singleton from "../Base/Singleton";
-import { IModel } from "../Common";
+import { IModel, strdecode, strencode } from "../Common";
 
 interface IItem { //监听消息项接口
   cb: Function;
@@ -29,6 +29,7 @@ export class NetWorkManager extends Singleton {
         return
       }
       this.ws = new WebSocket(`ws://localhost:${this.port}`)
+      this.ws.binaryType = 'arraybuffer'// 接收二进制数据
       this.ws.onopen = ()=>{
         this.isConnected = true
         resolve(true)
@@ -40,8 +41,10 @@ export class NetWorkManager extends Singleton {
       }
       this.ws.onmessage = (msg)=>{  
         try {
-          console.log('onmessage',msg.data)
-          const josn = JSON.parse(msg.data)
+          const ta = new Uint8Array(msg.data) // 将buffer转换为utf-8字节数组
+          const str = strdecode(ta) // 将utf-8字节数组解码为字符串
+          console.log('onmessage',str)
+          const josn = JSON.parse(str)
           const {name,data} = josn
           if (this.map.has(name)) {
             this.map.get(name).forEach(({cb,ctx}) => {
@@ -82,10 +85,22 @@ export class NetWorkManager extends Singleton {
     })
   }
 
-  sendMsg<T extends keyof IModel['msg']>(name:T,data:IModel['msg'][T]){ //发送消息
-    const msg = JSON.stringify({name,data})
+  async sendMsg<T extends keyof IModel['msg']>(name:T,data:IModel['msg'][T]){ //发送消息
+    const msg = {
+      name,
+      data,
+    }
+    //await new Promise((rs)=>setTimeout(rs,2000))  // 延迟2s
+    const str = JSON.stringify(msg) // 先将消息转换为字符串
+    const ta = strencode(str) // 对字符串进行编码
+    const ab = new ArrayBuffer(ta.length) 
+    const da = new DataView(ab)
+    for(let i=0;i<ta.length;i++){
+      da.setUint8(i,ta[i])
+    }
+
     if(this.ws){
-      this.ws.send(msg)
+      this.ws.send(da.buffer)
     }
   }
 

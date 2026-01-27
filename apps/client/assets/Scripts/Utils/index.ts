@@ -11,3 +11,16 @@ export const sortSpriteFrame = (spriteFrame: Array<SpriteFrame>) =>
 export const getAngle = (rad:number) => {   //弧度转角度
     return rad * 180 / Math.PI
 }
+
+export const deepClone = (obj:any) => { // 深拷贝
+    if (obj === null || typeof obj !== 'object') {
+        return obj;
+    }
+    const res = Array.isArray(obj) ? [] : {};
+    for (const key in obj) {
+        if (Object.hasOwnProperty.call(obj, key)) {
+            res[key] = deepClone(obj[key]);
+        }
+    }
+    return res;
+}

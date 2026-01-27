@@ -7,7 +7,7 @@ import { BulletManager } from "../Entity/Bullet/BulletManager";
 import EventManager from "./EventManager";
 import { EventEnum } from "../Enum";
 
-const ACTOR_SPEED = 100 //玩家移动速度
+const ACTOR_SPEED = 200 //玩家移动速度
 const BULLET_SPEED = 600 //子弹移动速度
 const Actor_Radius = 50 //角色半径
 const Bullet_Radius = 10 //子弹半径
@@ -29,47 +29,49 @@ export default class DataManager extends Singleton {
   bulletMap:Map<number,BulletManager> = new Map()
   textureMap:Map<string,SpriteFrame[]> = new Map()
 
+  lastState:IState
+
   private screenWidth:number = 960
   private screenHeight:number = 640
 
   state : IState = {
     actors:[
-      {
-        id:1,
-        hp:ACTOR_HP,
-        type:EntityTypeEnum.Actor1,
-        weaponType:EntityTypeEnum.Weapon1,
-        bulletType:EntityTypeEnum.Bullet2,
-        position:{
-          x:-150,
-          y:-150
-        },
-        direction:{
-          x:1,
-          y:0,
-        },
-      },
-      {
-        id:2,
-        hp:ACTOR_HP,
-        type:EntityTypeEnum.Actor1,
-        weaponType:EntityTypeEnum.Weapon1,
-        bulletType:EntityTypeEnum.Bullet2,
-        position:{
-          x:150,
-          y:150
-        },
-        direction:{
-          x:-1,
-          y:0,
-        },
-      },
+      // {
+      //   id:1,
+      //   hp:ACTOR_HP,
+      //   type:EntityTypeEnum.Actor1,
+      //   weaponType:EntityTypeEnum.Weapon1,
+      //   bulletType:EntityTypeEnum.Bullet2,
+      //   position:{
+      //     x:-150,
+      //     y:-150
+      //   },
+      //   direction:{
+      //     x:1,
+      //     y:0,
+      //   },
+      // },
+      // {
+      //   id:2,
+      //   hp:ACTOR_HP,
+      //   type:EntityTypeEnum.Actor1,
+      //   weaponType:EntityTypeEnum.Weapon1,
+      //   bulletType:EntityTypeEnum.Bullet2,
+      //   position:{
+      //     x:150,
+      //     y:150
+      //   },
+      //   direction:{
+      //     x:-1,
+      //     y:0,
+      //   },
+      // },
     ],
     bullets:[],
     nextBulletId:1,
   }
 
-  applyInput(input:IClientInput){
+  applyInput(input:IClientInput){ 
     switch(input.type){
       case InputTypeEnum.ActorMove:{
         const {
@@ -84,8 +86,8 @@ export default class DataManager extends Singleton {
           actor.direction.x = x
           actor.direction.y = y
 
-          actor.position.x += x * dt * ACTOR_SPEED
-          actor.position.y += y * dt * ACTOR_SPEED
+          actor.position.x = Number((actor.position.x + x * dt * ACTOR_SPEED).toFixed(3))
+          actor.position.y = Number((actor.position.y + y * dt * ACTOR_SPEED).toFixed(3))
         }
         break;
       } 
@@ -132,8 +134,8 @@ export default class DataManager extends Singleton {
               
               // 只触发爆炸事件，让 BulletManager 处理回收
               EventManager.Instance.emit(EventEnum.ExplosionBorn,bullet.id,{
-                x:(actor.position.x+bullet.position.x)/2,
-                y:(actor.position.y+bullet.position.y)/2
+                x:Number((actor.position.x+bullet.position.x)/2).toFixed(3),
+                y:Number((actor.position.y+bullet.position.y)/2).toFixed(3),
               })
               
               // 从bullets数组中移除
@@ -146,8 +148,8 @@ export default class DataManager extends Singleton {
       
           
           // 更新子弹位置
-          bullet.position.x += bullet.direction.x * dt * BULLET_SPEED
-          bullet.position.y += bullet.direction.y * dt * BULLET_SPEED
+          bullet.position.x = Number((bullet.position.x + bullet.direction.x * dt * BULLET_SPEED).toFixed(3))
+          bullet.position.y = Number((bullet.position.y + bullet.direction.y * dt * BULLET_SPEED).toFixed(3))
           
           // 边界检测 - 检查子弹是否超出屏幕范围
           if (bullet.position.x < leftBoundary || 

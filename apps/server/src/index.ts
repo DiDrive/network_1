@@ -1,6 +1,6 @@
 import { PlayerManager } from "./Biz/PlayerManager";
 import { RoomManager } from "./Biz/RoomManager";
-import { ApiMsgEnum, IApiPlayerJoinReq, IApiPlayerJoinRes, IApiPlayerListReq, IApiPlayerListRes, IApiRoomCreateReq, IApiRoomCreateRes, IApiRoomJoinReq, IApiRoomJoinRes, IApiRoomListRes } from "./Common";
+import { ApiMsgEnum, IApiGameStartReq, IApiGameStartRes, IApiPlayerJoinReq, IApiPlayerJoinRes, IApiPlayerListReq, IApiPlayerListRes, IApiRoomCreateReq, IApiRoomCreateRes, IApiRoomJoinReq, IApiRoomJoinRes, IApiRoomLeaveReq, IApiRoomLeaveRes, IApiRoomListRes } from "./Common";
 import { Connection, MyServer } from "./Core";
 import { symlinkCommon } from "./Utils";
 import { WebSocketServer } from "ws";
@@ -78,6 +78,31 @@ Server.setApi(ApiMsgEnum.ApiRoomCreate,(connection:Connection,data:IApiRoomCreat
         throw new Error("玩家未登录")
     }
 })
+Server.setApi(ApiMsgEnum.ApiRoomLeave,(connection:Connection,data:IApiRoomLeaveReq):IApiRoomLeaveRes=>{
+    if(connection.playerId){
+        const player = PlayerManager.Instance.idMapPlayer.get(connection.playerId)
+        if(player){
+            const rid = player.rid
+            if(rid){
+                RoomManager.Instance.leaveRoom(rid,player.id)
+                PlayerManager.Instance.syncPlayers() // 玩家离开房间后，同步玩家列表
+                RoomManager.Instance.syncRooms() // 房间离开后，同步房间列表
+                RoomManager.Instance.syncInRoom(rid) // 房间离开后，同步房间内玩家列表
+                return{}
+            }
+            else{
+                throw new Error("玩家不在房间")
+            }
+        }else{
+            throw new Error("玩家不存在")
+        }    
+        
+    }
+    else{
+        throw new Error("玩家未登录")
+    }
+})
+
 Server.setApi(ApiMsgEnum.ApiRoomJoin,(connection:Connection,{rid}:IApiRoomJoinReq):IApiRoomJoinRes=>{
     if(connection.playerId){
         const room = RoomManager.Instance.joinRoom(rid,connection.playerId)
@@ -91,6 +116,31 @@ Server.setApi(ApiMsgEnum.ApiRoomJoin,(connection:Connection,{rid}:IApiRoomJoinRe
         }
         else{
             throw new Error("房间不存在")
+        }
+    }
+    else{
+        throw new Error("玩家未登录")
+    }
+})
+
+Server.setApi(ApiMsgEnum.ApiGameStart,(connection:Connection,data:IApiGameStartReq):IApiGameStartRes=>{
+    if(connection.playerId){
+        const player = PlayerManager.Instance.idMapPlayer.get(connection.playerId)
+        if(player){
+            const rid = player.rid
+            if(rid){            
+                RoomManager.Instance.startRoom(rid)
+                PlayerManager.Instance.syncPlayers() // 玩家开始游戏后，同步玩家列表
+                RoomManager.Instance.syncRooms() // 房间开始游戏后，同步房间列表
+                RoomManager.Instance.syncInRoom(rid) // 房间开始游戏后，同步房间内玩家列表
+                return {} 
+            }
+            else{
+                throw new Error("玩家不在房间")
+            }
+        }
+        else{
+            throw new Error("玩家不存在")
         }
     }
     else{

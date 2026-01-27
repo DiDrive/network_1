@@ -40,3 +40,15 @@ export interface IApiRoomJoinRes{ // 加入房间返回的房间信息
 export interface IApiRoomJoinReq{ // 加入房间请求的房间信息
     rid:number
 }
+export interface IApiRoomLeaveRes{ // 离开房间返回的房间信息
+    
+}
+export interface IApiRoomLeaveReq{ // 离开房间请求的房间信息
+    
+}
+export interface IApiGameStartRes{ // 开始游戏返回的房间信息
+
+}
+export interface IApiGameStartReq{ // 开始游戏请求的房间信息
+
+}

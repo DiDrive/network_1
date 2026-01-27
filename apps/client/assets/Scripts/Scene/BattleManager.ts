@@ -9,13 +9,14 @@ import { BulletManager } from '../Entity/Bullet/BulletManager';
 import { ObjectPoolManager } from '../Global/ObjectPoolManager';
 import { NetWorkManager } from '../Global/NetWorkManager';
 import EventManager from '../Global/EventManager';
+import { deepClone } from '../Utils';
 const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
 export class BattleManager extends Component {
     private stage:Node
     private ui:Node
-
+    private pendingMsg:IMsgClientSync[] = []
     private shouldUpdate:boolean = false
 
     protected onLoad(): void {
@@ -72,6 +73,8 @@ export class BattleManager extends Component {
         list.push(p)
         } 
         await Promise.all(list)
+        // console.log('prefabMap keys:', Array.from(DataManager.Instance.prefabMap.keys()))
+        // console.log('Actor prefab present:', !!DataManager.Instance.prefabMap.get('Actor1'))
     }
 
 
@@ -85,13 +88,13 @@ export class BattleManager extends Component {
 
     tick(dt){
         this.tickActor(dt)
-        DataManager.Instance.applyInput({
-            type:InputTypeEnum.Timepast,
-            dt,
-        })
+        // DataManager.Instance.applyInput({
+        //     type:InputTypeEnum.Timepast,
+        //     dt,
+        // })
     }
 
-    tickActor(dt){
+    tickActor(dt){  
         for(const data of DataManager.Instance.state.actors){
             const {id} = data
             let actormanager  = DataManager.Instance.actorMap.get(id)
@@ -169,11 +172,23 @@ export class BattleManager extends Component {
             frameId:DataManager.Instance.frameId++,
         }
         NetWorkManager.Instance.sendMsg(ApiMsgEnum.MsgClientSync,Msg)
+
+        if(input.type === InputTypeEnum.ActorMove){
+            DataManager.Instance.applyInput(input)// 应用客户端输入
+            this.pendingMsg.push(Msg)
+        }
+        
     }
 
-    handleServerSync({ inputs,lastframeId }:IMsgServerSync){       //服务器同步输入
+    handleServerSync({ inputs,lastframeId }:IMsgServerSync){       //服务器同步输入,帧同步回滚
+        DataManager.Instance.state = DataManager.Instance.lastState // 回滚到最后一次同步的状态
         for (const input of inputs) {
             DataManager.Instance.applyInput(input)
+        }
+        DataManager.Instance.lastState = deepClone(DataManager.Instance.state)//更新最后一次同步的状态
+        this.pendingMsg = this.pendingMsg.filter((msg)=>msg.frameId > lastframeId)// 过滤出需要应用的输入
+        for (const msg of this.pendingMsg) {
+            DataManager.Instance.applyInput(msg.input)
         }
     }
 }
